@@ -29,7 +29,7 @@ export function errorHandler(
 
   // Prisma errors
   if (err.constructor.name === "PrismaClientKnownRequestError") {
-    const prismaError = err as { code: string; meta?: { target?: string[] } };
+    const prismaError = err as unknown as { code: string; meta?: { target?: string[] } };
     if (prismaError.code === "P2002") {
       response.message = `A record with this ${prismaError.meta?.target?.join(", ") || "field"} already exists`;
       res.status(409).json(response);
