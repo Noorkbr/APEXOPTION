@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum KycStatus {
+  NONE
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TradeDirection {
+  CALL
+  PUT
+}
+
+enum TradeResult {
+  PENDING
+  WIN
+  LOSS
+  DRAW
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+}
+
+enum TransactionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AssetType {
+  FOREX
+  CRYPTO
+  COMMODITY
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  password     String
+  name         String
+  role         UserRole  @default(USER)
+  kycStatus    KycStatus @default(NONE)
+  kycDocuments String[]
+  avatar       String?
+  balance      Float     @default(0)
+  demoBalance  Float     @default(10000)
+  isDemoMode   Boolean   @default(true)
+  isActive     Boolean   @default(true)
+  isBanned     Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  trades       Trade[]
+  transactions Transaction[]
+  sessions     Session[]
+
+  @@map("users")
+}
+
+model Trade {
+  id         String         @id @default(uuid())
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset      String
+  direction  TradeDirection
+  amount     Float
+  entryPrice Float
+  exitPrice  Float?
+  expiresAt  DateTime
+  result     TradeResult    @default(PENDING)
+  payout     Float          @default(0)
+  isDemo     Boolean        @default(false)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([result])
+  @@index([createdAt])
+  @@map("trades")
+}
+
+model Transaction {
+  id        String            @id @default(uuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      TransactionType
+  amount    Float
+  status    TransactionStatus @default(PENDING)
+  method    String
+  reference String?
+  metadata  Json?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("transactions")
+}
+
+model Asset {
+  id               String    @id @default(uuid())
+  symbol           String    @unique
+  name             String
+  type             AssetType
+  isActive         Boolean   @default(true)
+  payoutPercentage Float     @default(85)
+  minAmount        Float     @default(1)
+  maxAmount        Float     @default(10000)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("assets")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+  @@map("sessions")
+}
