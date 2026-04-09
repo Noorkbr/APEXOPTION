@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import type { StringValue } from "ms";
 import { env } from "../config/env";
 
 interface TokenPayload {
@@ -9,13 +10,13 @@ interface TokenPayload {
 
 export function generateAccessToken(payload: TokenPayload): string {
   return jwt.sign(payload, env.JWT_SECRET, {
-    expiresIn: env.JWT_EXPIRES_IN as unknown as number,
+    expiresIn: env.JWT_EXPIRES_IN as StringValue,
   });
 }
 
 export function generateRefreshToken(payload: TokenPayload): string {
   return jwt.sign(payload, env.JWT_REFRESH_SECRET, {
-    expiresIn: env.JWT_REFRESH_EXPIRES_IN as unknown as number,
+    expiresIn: env.JWT_REFRESH_EXPIRES_IN as StringValue,
   });
 }
 
